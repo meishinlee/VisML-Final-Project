@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.cluster import AgglomerativeClustering
+from sklearn.mixture import GaussianMixture
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import NearestNeighbors
@@ -39,13 +40,21 @@ explainer = LimeTabularExplainer(train,
                                  verbose=False)
 
 clustering = AgglomerativeClustering().fit(X)
+# clustering = GaussianMixture(n_components=2, init_params='kmeans').fit(X)
 names = list(feature_names)+["membership"]
 clustered_data = np.column_stack([X, clustering.labels_])
+# print("Predict\n")
+# print(clustering.predict(X))
+# clustered_data = np.column_stack([X, clustering.predict(X)])
+# print("clustering labels",clustering.labels_)
+# print("Clustered Data", clustered_data)
+# labels = clustering.predict()
 
 
 nbrs = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(train)
 distances, indices = nbrs.kneighbors(test)
 clabel = clustering.labels_
+# clabel = clustering.predict(X)
 
 def jaccard_similarity(list1, list2):
     s1 = set(list1)
@@ -60,9 +69,11 @@ def jaccard_distance(usecase):
         for j in usecase:
             i_sim.append(1 - jaccard_similarity(l, j))
         sim.append(i_sim)
+    print(sim)
     return sim
 
-for x in range(0, test.shape[0]):
+#for x in range(0, test.shape[0]):
+for x in range(test.shape[0]):
     use_case_one_features = []
     use_case_two_features = []
     use_case_three_features = []
@@ -80,7 +91,7 @@ for x in range(0, test.shape[0]):
                                              regressor = 'linear', explainer='dlime', labels=(0,1))
 
         fig_dlime, r_features = exp_dlime.as_pyplot_to_figure(type='h', name = i+.2, label='0')
-        fig_dlime.show()
+        # fig_dlime.show()
         use_case_two_features.append(r_features)
 
         exp_lime = explainer.explain_instance_hclust(test[x],
@@ -90,25 +101,26 @@ for x in range(0, test.shape[0]):
                                              regressor = 'linear', explainer = 'lime', labels=(0,1))
 
         fig_lime, r_features = exp_lime.as_pyplot_to_figure(type='h', name = i+.3, label='0')
-        fig_lime.show()
+        # fig_lime.show()
         use_case_three_features.append(r_features)
+    # print("use case 2",use_case_two_features)
 
     ################################################
-    sim = jaccard_distance(use_case_two_features)
-    np.savetxt("results/nn_dlime_jdist_bc.csv", sim, delimiter=",")
-    print(np.asarray(sim).mean())
+    # sim = jaccard_distance(use_case_two_features)
+    # np.savetxt("results/nn_dlime_jdist_bc.csv", sim, delimiter=",")
+    # print("Mean1:",np.asarray(sim).mean())
 
-    plt.matshow(sim);
-    plt.colorbar()
-    plt.savefig("results/sim_use_case_2.pdf", bbox_inches='tight')
-    plt.show()
+    # plt.matshow(sim);
+    # plt.colorbar()
+    # plt.savefig("results/sim_use_case_2.pdf", bbox_inches='tight')
+    # plt.show()
 
     ################################################
     sim = jaccard_distance(use_case_three_features)
-    np.savetxt("results/nn_lime_jdist_bc.csv", sim, delimiter=",")
-    print(np.asarray(sim).mean())
+    # np.savetxt("results/nn_lime_jdist_bc.csv", sim, delimiter=",")
+    print("Mean2:",np.asarray(sim).mean())
 
-    plt.matshow(sim);
-    plt.colorbar()
-    plt.savefig("results/sim_use_case_3.pdf", bbox_inches='tight')
-    plt.show()
+    # # plt.matshow(sim);
+    # plt.colorbar()
+    # plt.savefig("results/sim_use_case_3.pdf", bbox_inches='tight')
+    # # plt.show()
