@@ -10,11 +10,13 @@ from explainer_tabular import LimeTabularExplainer
 from load_dataset import LoadDataset
 
 test = LoadDataset(which='hp')
+print(test)
 X = test.data.data
-
+print(type(X))
 feature_names = test.data.feature_names
+# print(feature_names)
 target_names = test.data.target_names
-
+# print(target_names)
 # train, test, labels_train, labels_test = train_test_split(test.data.data, test.data.target, train_size=0.80)
 # np.save("X_train_hp.npy", train)
 # np.save("X_test_hp.npy", test)
@@ -22,6 +24,7 @@ target_names = test.data.target_names
 # np.save("y_test_hp.npy", labels_test)
 
 train = np.load("data/X_train_hp.npy")
+print(train)
 test = np.load("data/X_test_hp.npy")
 labels_train = np.load("data/y_train_hp.npy")
 labels_test = np.load("data/y_test_hp.npy")
