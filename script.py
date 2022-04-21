@@ -1,4 +1,5 @@
 import streamlit as st
+# streamlit run c:/Users/miche/Documents/GitHub/VisML-Final-Project/script.py
 import pandas as pd
 
 import matplotlib.pyplot as plt
@@ -35,7 +36,7 @@ i = np.random.randint(0, test.shape[0])
 
 st.write(""" 
 # VisML Final Project
-Mei Shin Lee, Mahika Jain  
+Mahika Jain, Mei Shin Lee  
 """)
 
 df = pd.read_csv(HEP_DATA)
