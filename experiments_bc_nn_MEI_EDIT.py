@@ -24,9 +24,11 @@ target_names = test.data.target_names
 
 train = np.load("data/X_train.npy")
 test = np.load("data/X_test.npy")
+# print(test.shape)
 labels_train = np.load("data/y_train.npy")
 labels_test = np.load("data/y_test.npy")
 
+print("shape",train.shape)
 nn = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
 nn.fit(train, labels_train)
 
@@ -42,13 +44,13 @@ explainer = LimeTabularExplainer(train,
 
 import time 
 start = time.time()
-clustering = AgglomerativeClustering().fit(X)
-# clustering = GaussianMixture(n_components=2, init_params='kmeans').fit(X)
+# clustering = AgglomerativeClustering().fit(X)
+clustering = GaussianMixture(n_components=2, init_params='kmeans').fit(X)
 names = list(feature_names)+["membership"]
-clustered_data = np.column_stack([X, clustering.labels_])
-# print("Predict\n")
-# print(clustering.predict(X))
-# clustered_data = np.column_stack([X, clustering.predict(X)])
+# clustered_data = np.column_stack([X, clustering.labels_])
+print("Predict\n")
+print(len(clustering.predict(X)))
+clustered_data = np.column_stack([X, clustering.predict(X)])
 print("End Time", time.time() - start)
 # print("clustering labels",clustering.labels_)
 # print("Clustered Data", clustered_data)
@@ -57,8 +59,8 @@ print("End Time", time.time() - start)
 
 nbrs = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(train)
 distances, indices = nbrs.kneighbors(test)
-clabel = clustering.labels_
-# clabel = clustering.predict(X)
+# clabel = clustering.labels_
+clabel = clustering.predict(X)
 
 def jaccard_similarity(list1, list2):
     s1 = set(list1)

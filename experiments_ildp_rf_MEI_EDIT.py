@@ -37,13 +37,21 @@ explainer = LimeTabularExplainer(train,
                                  discretize_continuous=True,
                                  verbose=False)
 
-clustering = AgglomerativeClustering().fit(X)
+import time
+from sklearn.mixture import GaussianMixture  
+start = time.time()
+# clustering = AgglomerativeClustering().fit(X)
+clustering = GaussianMixture(n_components=2, init_params='kmeans').fit(X)
+
 names = list(feature_names)+["membership"]
-clustered_data = np.column_stack([X, clustering.labels_])
+# clustered_data = np.column_stack([X, clustering.labels_])
+clustered_data = np.column_stack([X, clustering.predict(X)])
+print("Time taken to cluster: ", time.time() - start)
 
 nbrs = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(train)
 distances, indices = nbrs.kneighbors(test)
-clabel = clustering.labels_
+# clabel = clustering.labels_
+clabel = clustering.predict(X)
 
 def jaccard_similarity(list1, list2):
     s1 = set(list1)
@@ -65,7 +73,7 @@ for x in range(0, test.shape[0]):
     use_case_two_features = []
     use_case_three_features = []
     use_case_four_features = []
-    for i in range(0, 10):
+    for i in range(0,5):
         p_label = clabel[indices[x]]
         N = clustered_data[clustered_data[:,9] == clabel[p_label]]
         subset = np.delete(N, 9, axis=1)
@@ -78,7 +86,7 @@ for x in range(0, test.shape[0]):
                                              regressor = 'linear', explainer='dlime', labels=(0,1))
 
         fig_dlime, r_features = exp_dlime.as_pyplot_to_figure(type='h', name = i+.2, label='0')
-        fig_dlime.show()
+        # fig_dlime.show()
         use_case_two_features.append(r_features)
 
 
@@ -89,25 +97,25 @@ for x in range(0, test.shape[0]):
                                              regressor = 'linear', explainer = 'lime', labels=(0,1))
 
         fig_lime, r_features = exp_lime.as_pyplot_to_figure(type='h', name = i+.3, label='0')
-        fig_lime.show()
+        # fig_lime.show()
         use_case_three_features.append(r_features)
 
     ################################################
     sim = jaccard_distance(use_case_two_features)
-    np.savetxt("results/rf_dlime_jdist_ildp.csv", sim, delimiter=",")
+    # np.savetxt("results/rf_dlime_jdist_ildp.csv", sim, delimiter=",")
     print(np.asarray(sim).mean())
 
-    plt.matshow(sim);
-    plt.colorbar()
-    plt.savefig("results/sim_use_case_2.pdf", bbox_inches='tight')
-    plt.show()
+    # plt.matshow(sim);
+    # plt.colorbar()
+    # plt.savefig("results/sim_use_case_2.pdf", bbox_inches='tight')
+    # plt.show()
 
     ################################################
     sim = jaccard_distance(use_case_three_features)
-    np.savetxt("results/rf_lime_jdist_ildp.csv", sim, delimiter=",")
-    print(np.asarray(sim).mean())
+    # np.savetxt("results/rf_lime_jdist_ildp.csv", sim, delimiter=",")
+    # print(np.asarray(sim).mean())
 
-    plt.matshow(sim);
-    plt.colorbar()
-    plt.savefig("results/sim_use_case_3.pdf", bbox_inches='tight')
-    plt.show()
+    # plt.matshow(sim);
+    # plt.colorbar()
+    # plt.savefig("results/sim_use_case_3.pdf", bbox_inches='tight')
+    # plt.show()
