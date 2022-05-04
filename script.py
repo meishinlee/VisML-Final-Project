@@ -109,6 +109,9 @@ clabel = clustering.predict(X)
 point_index = 1
 point = test[point_index]
 point_pred_label = clustering.predict(point.reshape(1, -1)) # this is the predicted label of the point
+# ############################ HERE ##############################
+# filter out the points that are in the same cluster as the point. Then run KNN to find the 10 closest out of 
+# those points. Currently, KNN also picks up on points from opposing clusters. 
 
 # Determine its class based on KNN
 # Predict the class of the sample using the trained model
@@ -116,6 +119,8 @@ nbrs = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(train)
 distances, indices = nbrs.kneighbors(test)
 closest_point_dist = distances[point_index]
 closest_point_index = indices[point_index]
+closest_point = train[closest_point_index][-1] 
+print("predicted label: ", point_pred_label)
 
 n_neighbor = 10
 ten_neighbors = NearestNeighbors(n_neighbors=n_neighbor, algorithm='ball_tree').fit(train)
