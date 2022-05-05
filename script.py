@@ -89,8 +89,8 @@ clustering = AgglomerativeClustering().fit(train)
 clustered_data = np.column_stack([train, clustering.labels_])
 clabel = clustering.labels_
 fig_agglomerative, ax = plt.subplots()
-feature1 = st.slider("Feature 1: ", 1, 17, 1, key="agg_1")
-feature2 = st.slider("Feature 2: ", 1, 17, 2, key="agg_2")
+feature1 = st.slider("Feature 1 (x-axis): ", 1, 17, 1, key="agg_1")
+feature2 = st.slider("Feature 2 (y-axis): ", 1, 17, 2, key="agg_2")
 plt.xlabel(feature_names[feature1])
 plt.ylabel(feature_names[feature2])
 ax = plt.scatter(train[:,feature1], train[:,feature2], c=clabel)# labels_train)
@@ -162,20 +162,65 @@ nn.fit(train, labels_train)
 
 mean_accuracy = nn.score(test, labels_test)
 
-explainer = lime.lime_tabular.LimeTabularExplainer(train,
+from explainer_tabular import LimeTabularExplainer
+explainer = LimeTabularExplainer(train,
                                  mode="classification",
                                  feature_names=feature_names,
                                  class_names=target_names,
                                  discretize_continuous=True,
                                  verbose=False)
 
-# print("pt",point.reshape((30,1)))
-exp = explainer.explain_instance(point, nn.predict_proba, num_features=5)
+# explainer = lime.lime_tabular.LimeTabularExplainer(train,
+#                                  mode="classification",
+#                                  feature_names=feature_names,
+#                                  class_names=target_names,
+#                                  discretize_continuous=True,
+#                                  verbose=False)
+st.write("Trial 1")                                 
+exp_lime = explainer.explain_instance_hclust(point,
+                                             nn.predict_proba,
+                                             num_features=5,
+                                             model_regressor= LinearRegression(),
+                                             regressor = 'linear', explainer = 'lime', labels=(0,1))
 
-components.html(exp.as_html())
+# print("pt",point.reshape((30,1)))
+fig_lime, r_features = exp_lime.as_pyplot_to_figure(type='h', name = 1+.3, label='0')
+st.pyplot(fig_lime)
+
+st.write("Trial 2")
+exp_lime = explainer.explain_instance_hclust(point,
+                                             nn.predict_proba,
+                                             num_features=5,
+                                             model_regressor= LinearRegression(),
+                                             regressor = 'linear', explainer = 'lime', labels=(0,1))
+
+# print("pt",point.reshape((30,1)))
+fig_lime2, r_features = exp_lime.as_pyplot_to_figure(type='h', name = 2+.3, label='0')
+st.pyplot(fig_lime2)
+
+st.write("Trial 3")
+exp_lime = explainer.explain_instance_hclust(point,
+                                             nn.predict_proba,
+                                             num_features=5,
+                                             model_regressor= LinearRegression(),
+                                             regressor = 'linear', explainer = 'lime', labels=(0,1))
+
+# print("pt",point.reshape((30,1)))
+fig_lime3, r_features = exp_lime.as_pyplot_to_figure(type='h', name = 2+.3, label='0')
+st.pyplot(fig_lime3)
+
+# exp = exp_lime.explain_instance(point, nn.predict_proba, num_features=5)
+
+# components.html(exp.as_html())
 # fig_exp, ax = plt.subplots()
 # exp_fig = exp.as_pyplot_figure()
 # st.write(exp.as_list())
+
+# If we run the LIME explainer as coded above with the same point (but different random state), 
+# we can show that we would get different results... which proves the instability of the LIME 
+# explainer.
+
+# Now, we can also show this for DLIME... and hopefully it shows similar results based on clustering... 
 
 st.write("# DLIME results, with top 5 Features")
 
