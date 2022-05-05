@@ -102,6 +102,7 @@ clustering = GaussianMixture(n_components=2, init_params='kmeans').fit(train)
 clustered_data = np.column_stack([train, clustering.predict(train)])
 fig_em, ax = plt.subplots()
 # print(clustering.predict(X))
+
 st.write("# EM Clustering")
 # We start with index 1 because index 0 is the key/index of the samples
 # feature1 = st.slider("Feature 1: ", 1, 17, 1, key="em_1")
@@ -122,6 +123,15 @@ point_pred_label = clustering.predict(point.reshape(1, -1)) # this is the predic
 
 # Determine its class based on KNN
 # Predict the class of the sample using the trained model
+
+pred_same_index_list = [] # store the list of indices of the points that are in the same cluster as the test point (1 or 0 value)
+for i in range(len(labels_train)): 
+    if labels_train[i] == point_pred_label:
+        pred_same_index_list.append(i)
+
+# point_clustered_data contains the data of the points that are in the same cluster as the test point
+point_clustered_data = train[pred_same_index_list]
+
 nbrs = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(train)
 distances, indices = nbrs.kneighbors(test)
 closest_point_dist = distances[point_index]
@@ -222,8 +232,36 @@ st.pyplot(fig_lime3)
 
 # Now, we can also show this for DLIME... and hopefully it shows similar results based on clustering... 
 
-st.write("# DLIME results, with top 5 Features")
+st.write("# DLIME results (using EM Clustering), with top 5 Features")
+st.write("Trial 1")
+exp_dlime = explainer.explain_instance_hclust(point,
+                                             nn.predict_proba,
+                                             num_features=5,
+                                             model_regressor=LinearRegression(),
+                                             clustered_data = point_clustered_data,
+                                             regressor = 'linear', explainer='dlime', labels=(0,1))
+fig_dlime1, r_features = exp_dlime.as_pyplot_to_figure(type='h', name = 1+.2, label='0')
+st.pyplot(fig_dlime1)
 
+st.write("Trial 2")
+exp_dlime = explainer.explain_instance_hclust(point,
+                                             nn.predict_proba,
+                                             num_features=5,
+                                             model_regressor=LinearRegression(),
+                                             clustered_data = point_clustered_data,
+                                             regressor = 'linear', explainer='dlime', labels=(0,1))
+fig_dlime2, r_features = exp_dlime.as_pyplot_to_figure(type='h', name = 2+.2, label='0')
+st.pyplot(fig_dlime2)
+
+st.write("Trial 3")
+exp_dlime = explainer.explain_instance_hclust(point,
+                                             nn.predict_proba,
+                                             num_features=5,
+                                             model_regressor=LinearRegression(),
+                                             clustered_data = point_clustered_data,
+                                             regressor = 'linear', explainer='dlime', labels=(0,1))
+fig_dlime3, r_features = exp_dlime.as_pyplot_to_figure(type='h', name = 3+.2, label='0')
+st.pyplot(fig_dlime3)
 # Testing streamlit 
 train = pd.DataFrame(X)
 train.columns=feature_names
