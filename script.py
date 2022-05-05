@@ -1,5 +1,6 @@
 from re import M
 import streamlit as st
+import streamlit.components.v1 as components
 # streamlit run c:/Users/miche/Documents/GitHub/VisML-Final-Project/script.py
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -11,6 +12,10 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import NearestNeighbors
 import io 
+import lime
+import lime.lime_tabular
+from sklearn.neural_network import MLPClassifier
+# from explainer_tabular import LimeTabularExplainer
 
 # from explainer_tabular import LimeTabularExplainer
 from load_dataset import LoadDataset
@@ -52,12 +57,14 @@ target_names = ['yes' 'no']
 # i = np.random.randint(0, test.shape[0])
 
 st.write(""" 
-# VisML Final Project
-Mahika Jain, Mei Shin Lee  
+# Modified DLIME Experimental Results
+## CS-UY 3943, Final Project
+### Mahika Jain, Mei Shin Lee  
 """)
 
 st.write('''
-Breast Cancer Dataset 
+## Breast Cancer Dataset 
+#### Clusters between the two classes (Malignant and Benign) are shown using varying features below. 
 ''')
 # fig, ax = plt.subplots()
 # ax = plt.scatter(train[:,0], train[:,17], c=labels_train)# labels_train)
@@ -76,7 +83,7 @@ test = np.load("data/X_test.npy")
 labels_train = np.load("data/y_train.npy")
 labels_test = np.load("data/y_test.npy")
 
-st.write("Agglomerative Clustering")
+st.write("# Agglomerative Clustering")
 # Agglomerative Clustering
 clustering = AgglomerativeClustering().fit(train)
 clustered_data = np.column_stack([train, clustering.labels_])
@@ -95,7 +102,7 @@ clustering = GaussianMixture(n_components=2, init_params='kmeans').fit(train)
 clustered_data = np.column_stack([train, clustering.predict(train)])
 fig_em, ax = plt.subplots()
 # print(clustering.predict(X))
-st.write("EM Clustering")
+st.write("# EM Clustering")
 # We start with index 1 because index 0 is the key/index of the samples
 # feature1 = st.slider("Feature 1: ", 1, 17, 1, key="em_1")
 # feature2 = st.slider("Feature 2: ", 1, 17, 2, key="em_2")
@@ -147,6 +154,30 @@ intercept = reg.intercept_
 x_values = np.linspace(min_x, max_x, 100).reshape(100, 1)
 ax = plt.plot(x_values, reg.predict(x_values))
 st.pyplot(fig_ten_closest)
+
+# Testing regular LIME 
+st.write("# LIME results, with top 5 Features")
+nn = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
+nn.fit(train, labels_train)
+
+mean_accuracy = nn.score(test, labels_test)
+
+explainer = lime.lime_tabular.LimeTabularExplainer(train,
+                                 mode="classification",
+                                 feature_names=feature_names,
+                                 class_names=target_names,
+                                 discretize_continuous=True,
+                                 verbose=False)
+
+# print("pt",point.reshape((30,1)))
+exp = explainer.explain_instance(point, nn.predict_proba, num_features=5)
+
+components.html(exp.as_html())
+# fig_exp, ax = plt.subplots()
+# exp_fig = exp.as_pyplot_figure()
+# st.write(exp.as_list())
+
+st.write("# DLIME results, with top 5 Features")
 
 # Testing streamlit 
 train = pd.DataFrame(X)
