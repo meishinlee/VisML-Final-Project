@@ -7,6 +7,5 @@ matplotlib
 streamlit
 matplotlib
 lime
-re
 load_dataset
 explainer_tabular
