@@ -205,6 +205,17 @@ exp_lime = explainer.explain_instance_hclust(point,
 fig_lime3, r_features = exp_lime.as_pyplot_to_figure(type='h', name = 2+.3, label='0')
 st.pyplot(fig_lime3)
 
+lime_trial_num = st.number_input('Enter the lime trial number you would like to see:', min_value=1, max_value=100000, step=1)
+st.write('Trial ', lime_trial_num)
+exp_lime = explainer.explain_instance_hclust(point,
+                                             nn.predict_proba,
+                                             num_features=5,
+                                             model_regressor=LinearRegression(),
+                                             clustered_data = point_clustered_data,
+                                             regressor = 'linear', explainer='lime', labels=(0,1))
+fig_limenum, r_features = exp_lime.as_pyplot_to_figure(type='h', name = lime_trial_num+.3, label='0')
+st.pyplot(fig_limenum)
+
 # exp = exp_lime.explain_instance(point, nn.predict_proba, num_features=5)
 
 # components.html(exp.as_html())
@@ -250,15 +261,15 @@ exp_dlime = explainer.explain_instance_hclust(point,
 fig_dlime3, r_features = exp_dlime.as_pyplot_to_figure(type='h', name = 3+.2, label='0')
 st.pyplot(fig_dlime3)
 
-trial_num = st.number_input('Enter the trial number  you would like to see:', min_value=1, max_value=100000, step=1)
-st.write('Trial ', trial_num)
+dlime_trial_num = st.number_input('Enter the dlime trial number you would like to see:', min_value=1, max_value=100000, step=1)
+st.write('Trial ', dlime_trial_num)
 exp_dlime = explainer.explain_instance_hclust(point,
                                              nn.predict_proba,
                                              num_features=5,
                                              model_regressor=LinearRegression(),
                                              clustered_data = point_clustered_data,
                                              regressor = 'linear', explainer='dlime', labels=(0,1))
-fig_dlimenum, r_features = exp_dlime.as_pyplot_to_figure(type='h', name = trial_num+.2, label='0')
+fig_dlimenum, r_features = exp_dlime.as_pyplot_to_figure(type='h', name = dlime_trial_num+.2, label='0')
 st.pyplot(fig_dlimenum)
 
 # Testing streamlit 
@@ -275,10 +286,12 @@ census_df = pd.read_csv(CENSUS_DATA)
 census_df.drop("state of previous residence", axis=1, inplace=True)
 st.write(census_df.head())
 
+census_df['Probability for the label'] = census_df['Probability for the label'].str.replace('-50000', '1')
+census_df['Probability for the label'] = census_df['Probability for the label'].str.replace('50000+.', '0')
+
 le = LabelEncoder()
 categories_data = ['class of worker', 'detailed industry recode', 'detailed occupation recode', 'education', 'enroll in edu inst last wk', 'marital stat', 'major industry code', 'major occupation code', 'race', 'hispanic origin', 'sex', 'member of a labor union', 'reason for unemployment', 'full or part time employment stat', 'tax filer stat', 'region of previous residence', 'detailed household and family stat', 'detailed household summary in household', 'live in this house 1 year ago', 'family members under 18', 'citizenship', "fill inc questionnaire for veteran\'s admin"]
 for i in range(len(categories_data)):
-    #st.write(le.fit_transform(census_df[categories_data[i]])
     census_df[categories_data[i]] = le.fit_transform(census_df[categories_data[i]])
 
 # census_df["class of worker"] = le.fit_transform(census_df["class of worker"])
@@ -306,6 +319,7 @@ st.write(total)
 # st.write(enc.categories_)
 
 census_train, census_test, census_train_label, census_test_label = train_test_split(total, census_df['class of worker'], test_size=0.2, random_state=42)
+
 st.write("# Agglomerative Clustering")
 # Agglomerative Clustering
 clustering = AgglomerativeClustering().fit(census_train)
