@@ -28,19 +28,7 @@ test = np.load("data/X_test.npy")
 labels_train = np.load("data/y_train.npy")
 labels_test = np.load("data/y_test.npy")
 
-print("shape",test.shape)
 nn = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
-
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-# Standard Scaler 
-standard_scale = StandardScaler()
-train = standard_scale.fit_transform(train)
-test = standard_scale.fit_transform(test)
-print("train length",len(train))
-# Min Max Scaler
-# min_max_scaler = MinMaxScaler(feature_range=(-100000, 100000))
-# train = min_max_scaler.fit_transform(train)
-# test = min_max_scaler.fit_transform(test)
 nn.fit(train, labels_train)
 
 mean_accuracy = nn.score(test, labels_test)
