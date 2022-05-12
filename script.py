@@ -219,6 +219,7 @@ st.pyplot(fig_lime3)
 # Now, we can also show this for DLIME... and hopefully it shows similar results based on clustering... 
 
 st.write("# DLIME results (using EM Clustering), with top 5 Features")
+
 st.write("Trial 1")
 exp_dlime = explainer.explain_instance_hclust(point,
                                              nn.predict_proba,
@@ -248,6 +249,18 @@ exp_dlime = explainer.explain_instance_hclust(point,
                                              regressor = 'linear', explainer='dlime', labels=(0,1))
 fig_dlime3, r_features = exp_dlime.as_pyplot_to_figure(type='h', name = 3+.2, label='0')
 st.pyplot(fig_dlime3)
+
+trial_num = st.number_input('Enter the trial number  you would like to see:', min_value=1, max_value=100000, step=1)
+st.write('Trial ', trial_num)
+exp_dlime = explainer.explain_instance_hclust(point,
+                                             nn.predict_proba,
+                                             num_features=5,
+                                             model_regressor=LinearRegression(),
+                                             clustered_data = point_clustered_data,
+                                             regressor = 'linear', explainer='dlime', labels=(0,1))
+fig_dlimenum, r_features = exp_dlime.as_pyplot_to_figure(type='h', name = trial_num+.2, label='0')
+st.pyplot(fig_dlimenum)
+
 # Testing streamlit 
 train = pd.DataFrame(X)
 train.columns=feature_names
@@ -259,27 +272,35 @@ from sklearn.preprocessing import LabelEncoder
 st.write("# Census Dataset")
 CENSUS_DATA = "https://raw.githubusercontent.com/meishinlee/VisML-Final-Project/master/data/census-income-data.csv"
 census_df = pd.read_csv(CENSUS_DATA)
+census_df.drop("state of previous residence", axis=1, inplace=True)
 st.write(census_df.head())
 
-# le = LabelEncoder()
+le = LabelEncoder()
+categories_data = ['class of worker', 'detailed industry recode', 'detailed occupation recode', 'education', 'enroll in edu inst last wk', 'marital stat', 'major industry code', 'major occupation code', 'race', 'hispanic origin', 'sex', 'member of a labor union', 'reason for unemployment', 'full or part time employment stat', 'tax filer stat', 'region of previous residence', 'detailed household and family stat', 'detailed household summary in household', 'live in this house 1 year ago', 'family members under 18', 'citizenship', "fill inc questionnaire for veteran\'s admin"]
+for i in range(len(categories_data)):
+    #st.write(le.fit_transform(census_df[categories_data[i]])
+    census_df[categories_data[i]] = le.fit_transform(census_df[categories_data[i]])
+
 # census_df["class of worker"] = le.fit_transform(census_df["class of worker"])
 
-to_encode_cat = census_df[['class of worker', 'detailed industry recode', 'detailed occupation recode', 'education', 'enroll in edu inst last wk', 'marital stat', 'major industry code', 'major occupation code', 'race', 'hispanic origin', 'sex', 'member of a labor union', 'reason for unemployment', 'full or part time employment stat', 'tax filer stat', 'region of previous residence', 'detailed household and family stat', 'detailed household summary in household', 'live in this house 1 year ago', 'family members under 18', 'citizenship', "fill inc questionnaire for veteran\'s admin"]]
-to_encode_cat['detailed industry recode'] = to_encode_cat['detailed industry recode'].astype(str)
-to_encode_cat['detailed occupation recode'] = to_encode_cat['detailed occupation recode'].astype(str)
+# to_encode_cat = census_df[['class of worker', 'detailed industry recode', 'detailed occupation recode', 'education', 'enroll in edu inst last wk', 'marital stat', 'major industry code', 'major occupation code', 'race', 'hispanic origin', 'sex', 'member of a labor union', 'reason for unemployment', 'full or part time employment stat', 'tax filer stat', 'region of previous residence', 'detailed household and family stat', 'detailed household summary in household', 'live in this house 1 year ago', 'family members under 18', 'citizenship', "fill inc questionnaire for veteran\'s admin"]]
+# to_encode_cat['detailed industry recode'] = to_encode_cat['detailed industry recode'].astype(str)
+# to_encode_cat['detailed occupation recode'] = to_encode_cat['detailed occupation recode'].astype(str)
 
-selected_cat = [['class of worker'], ['detailed industry recode'], ['detailed occupation recode'], ['education'], ['enroll in edu inst last wk'], ['marital stat'], ['major industry code'], ['major occupation code'], ['race'], ['hispanic origin'], ['sex'], ['member of a labor union'], ['reason for unemployment'], ['full or part time employment stat'], ['tax filer stat'], ['region of previous residence'], ['detailed household and family stat'], ['detailed household summary in household'], ['live in this house 1 year ago'], ['family members under 18'], ['citizenship'], ["fill inc questionnaire for veteran\'s admin"]]
+# selected_cat = [['class of worker'], ['detailed industry recode'], ['detailed occupation recode'], ['education'], ['enroll in edu inst last wk'], ['marital stat'], ['major industry code'], ['major occupation code'], ['race'], ['hispanic origin'], ['sex'], ['member of a labor union'], ['reason for unemployment'], ['full or part time employment stat'], ['tax filer stat'], ['region of previous residence'], ['detailed household and family stat'], ['detailed household summary in household'], ['live in this house 1 year ago'], ['family members under 18'], ['citizenship'], ["fill inc questionnaire for veteran\'s admin"]]
 # st.write(to_encode_cat)
-enc = OneHotEncoder(categories = selected_cat, drop='if_binary', handle_unknown='error')
-encoded_census = enc.fit_transform(to_encode_cat).toarray()
+#enc = OneHotEncoder(categories = selected_cat, sparse=True, handle_unknown='ignore')
+#encoded_census = enc.fit_transform(to_encode_cat).toarray()
 # enc_fit = enc.fit(to_encode_cat)
 # encoded_census = enc.transform(enc_fit).toarray()
-st.write(encoded_census)
+# st.write(encoded_census)
+st.write(census_df)
 
 selected_nums = ['age', 'wage per hour', 'capital gains', 'capital losses', 'dividends from stocks', 'num persons worked for employer', 'year', 'weeks worked in year', 'instance weight']
 to_join = census_df[selected_nums]
 
-total = np.hstack((encoded_census, to_join))
+#total = np.hstack((encoded_census, to_join))
+total = np.hstack((census_df, to_join))
 st.write(total)
 
 # st.write(enc.categories_)
