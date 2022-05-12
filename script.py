@@ -22,21 +22,6 @@ from load_dataset import LoadDataset
 HEP_DATA = "https://raw.githubusercontent.com/meishinlee/VisML-Final-Project/master/data/hepatitis.csv"
 BC_DATA = "https://github.com/meishinlee/VisML-Final-Project/blob/master/X_train_hp.npy"
 
-# def load_data(): 
-#     return np.random.rand(455, 30)
-
-# train = load_data()
-# Create an in-memory buffer
-# with io.BytesIO() as buffer:
-#     np.save(buffer, train)
-#     btn = st.download_button(
-#         label="Download numpy array (.npy)",
-#         data = buffer, # Download buffer
-#         file_name = 'predicted_map.npy'
-#     )
-# test = LoadDataset(which='hp')
-# X = test.data.data
-
 X = df = pd.read_csv(HEP_DATA)
 # feature_names = test.data.feature_names
 feature_names = ['Age', 'Sex', 'Steroid', 'Antivirals', 'Fatigue', 'Malaise', 'Anorexia', 'LiverBig', 'LiverFirm', 'SpleenPalpable', 'Spiders', 'Ascites', 'Varices', 'Bilirubin', 'AlkPhosphate', 'Sgot', 'AlbuMin', 'ProTime', 'Histology', 'Class']
@@ -72,6 +57,7 @@ st.write('''
 
 # In this case, it was okay to cluster the entire dataset for visualization purposes. We were not training 
 # and testing a model. 
+
 test = LoadDataset(which='bc')
 X = test.data.data
 feature_names = test.data.feature_names
@@ -267,6 +253,50 @@ train = pd.DataFrame(X)
 train.columns=feature_names
 train.reset_index(inplace=True)
 st.write(train)
+
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import LabelEncoder
+st.write("# Census Dataset")
+CENSUS_DATA = "https://raw.githubusercontent.com/meishinlee/VisML-Final-Project/master/data/census-income-data.csv"
+census_df = pd.read_csv(CENSUS_DATA)
+st.write(census_df.head())
+
+# le = LabelEncoder()
+# census_df["class of worker"] = le.fit_transform(census_df["class of worker"])
+
+to_encode_cat = census_df[['class of worker', 'detailed industry recode', 'detailed occupation recode', 'education', 'enroll in edu inst last wk', 'marital stat', 'major industry code', 'major occupation code', 'race', 'hispanic origin', 'sex', 'member of a labor union', 'reason for unemployment', 'full or part time employment stat', 'tax filer stat', 'region of previous residence', 'detailed household and family stat', 'detailed household summary in household', 'live in this house 1 year ago', 'family members under 18', 'citizenship', "fill inc questionnaire for veteran\'s admin"]]
+to_encode_cat['detailed industry recode'] = to_encode_cat['detailed industry recode'].astype(str)
+to_encode_cat['detailed occupation recode'] = to_encode_cat['detailed occupation recode'].astype(str)
+
+selected_cat = [['class of worker'], ['detailed industry recode'], ['detailed occupation recode'], ['education'], ['enroll in edu inst last wk'], ['marital stat'], ['major industry code'], ['major occupation code'], ['race'], ['hispanic origin'], ['sex'], ['member of a labor union'], ['reason for unemployment'], ['full or part time employment stat'], ['tax filer stat'], ['region of previous residence'], ['detailed household and family stat'], ['detailed household summary in household'], ['live in this house 1 year ago'], ['family members under 18'], ['citizenship'], ["fill inc questionnaire for veteran\'s admin"]]
+# st.write(to_encode_cat)
+enc = OneHotEncoder(categories = selected_cat, drop='if_binary', handle_unknown='error')
+encoded_census = enc.fit_transform(to_encode_cat).toarray()
+# enc_fit = enc.fit(to_encode_cat)
+# encoded_census = enc.transform(enc_fit).toarray()
+st.write(encoded_census)
+
+selected_nums = ['age', 'wage per hour', 'capital gains', 'capital losses', 'dividends from stocks', 'num persons worked for employer', 'year', 'weeks worked in year', 'instance weight']
+to_join = census_df[selected_nums]
+
+total = np.hstack((encoded_census, to_join))
+st.write(total)
+
+# st.write(enc.categories_)
+
+census_train, census_test, census_train_label, census_test_label = train_test_split(total, census_df['class of worker'], test_size=0.2, random_state=42)
+st.write("# Agglomerative Clustering")
+# Agglomerative Clustering
+clustering = AgglomerativeClustering().fit(census_train)
+clustered_data = np.column_stack([census_train, clustering.labels_])
+clabel = clustering.labels_
+fig_agglomerative, ax = plt.subplots()
+feature1 = st.slider("Feature 1 (x-axis): ", 1, 17, 1, key="census_agg_1")
+feature2 = st.slider("Feature 2 (y-axis): ", 1, 17, 2, key="census_agg_2")
+plt.xlabel(feature_names[feature1])
+plt.ylabel(feature_names[feature2])
+ax = plt.scatter(train[:,feature1], train[:,feature2], c=clabel)# labels_train)
+st.pyplot(fig_agglomerative)
 
 df = pd.read_csv(HEP_DATA)
 st.line_chart(df)
