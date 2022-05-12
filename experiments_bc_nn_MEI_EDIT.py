@@ -28,8 +28,19 @@ test = np.load("data/X_test.npy")
 labels_train = np.load("data/y_train.npy")
 labels_test = np.load("data/y_test.npy")
 
-print("shape",train.shape)
+print("shape",test.shape)
 nn = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
+
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+# Standard Scaler 
+standard_scale = StandardScaler()
+train = standard_scale.fit_transform(train)
+test = standard_scale.fit_transform(test)
+print("train length",len(train))
+# Min Max Scaler
+# min_max_scaler = MinMaxScaler(feature_range=(-100000, 100000))
+# train = min_max_scaler.fit_transform(train)
+# test = min_max_scaler.fit_transform(test)
 nn.fit(train, labels_train)
 
 mean_accuracy = nn.score(test, labels_test)
@@ -49,7 +60,7 @@ clustering = GaussianMixture(n_components=2, init_params='kmeans').fit(X)
 names = list(feature_names)+["membership"]
 # clustered_data = np.column_stack([X, clustering.labels_])
 print("Predict\n")
-print(len(clustering.predict(X)))
+# print(len(clustering.predict(X)))
 clustered_data = np.column_stack([X, clustering.predict(X)])
 print("End Time", time.time() - start)
 # print("clustering labels",clustering.labels_)
@@ -114,7 +125,7 @@ for x in range(test.shape[0]):
     ################################################
     sim = jaccard_distance(use_case_two_features)
     # np.savetxt("results/nn_dlime_jdist_bc.csv", sim, delimiter=",")
-    print("dLIME:",np.asarray(sim).mean())
+    # print("dLIME:",np.asarray(sim).mean())
 
     # plt.matshow(sim);
     # plt.colorbar()
@@ -124,7 +135,7 @@ for x in range(test.shape[0]):
     ################################################
     sim = jaccard_distance(use_case_three_features)
     # np.savetxt("results/nn_lime_jdist_bc.csv", sim, delimiter=",")
-    # print(np.asarray(sim).mean())
+    print(np.asarray(sim).mean())
 
     # # plt.matshow(sim);
     # plt.colorbar()

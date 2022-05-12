@@ -26,6 +26,12 @@ test = np.load("data/X_test.npy")
 labels_train = np.load("data/y_train.npy")
 labels_test = np.load("data/y_test.npy")
 
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+standard_scale = StandardScaler()
+min_max_scaler = MinMaxScaler(feature_range=(-100000, 100000))
+train = min_max_scaler.fit_transform(train)
+test = min_max_scaler.fit_transform(test)
+
 rf = RandomForestClassifier(n_estimators=10, random_state=0, max_depth=5, max_features=5)
 rf.fit(train, labels_train)
 mean_accuracy = rf.score(test, labels_test)

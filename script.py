@@ -261,16 +261,19 @@ exp_dlime = explainer.explain_instance_hclust(point,
 fig_dlime3, r_features = exp_dlime.as_pyplot_to_figure(type='h', name = 3+.2, label='0')
 st.pyplot(fig_dlime3)
 
+st.write("# Generate Additional Trials")
 dlime_trial_num = st.number_input('Enter the dlime trial number you would like to see:', min_value=1, max_value=100000, step=1)
-st.write('Trial ', dlime_trial_num)
-exp_dlime = explainer.explain_instance_hclust(point,
-                                             nn.predict_proba,
-                                             num_features=5,
-                                             model_regressor=LinearRegression(),
-                                             clustered_data = point_clustered_data,
-                                             regressor = 'linear', explainer='dlime', labels=(0,1))
-fig_dlimenum, r_features = exp_dlime.as_pyplot_to_figure(type='h', name = dlime_trial_num+.2, label='0')
-st.pyplot(fig_dlimenum)
+
+for trial in range(int(dlime_trial_num)):
+    st.write('Trial ', 4+int(trial))
+    exp_dlime = explainer.explain_instance_hclust(point,
+                                                nn.predict_proba,
+                                                num_features=5,
+                                                model_regressor=LinearRegression(),
+                                                clustered_data = point_clustered_data,
+                                                regressor = 'linear', explainer='dlime', labels=(0,1))
+    fig_dlimenum, r_features = exp_dlime.as_pyplot_to_figure(type='h', name = dlime_trial_num+.2, label='0')
+    st.pyplot(fig_dlimenum)
 
 # Testing streamlit 
 train = pd.DataFrame(X)
@@ -284,7 +287,6 @@ st.write("# Census Dataset")
 CENSUS_DATA = "https://raw.githubusercontent.com/meishinlee/VisML-Final-Project/master/data/census-income-data.csv"
 census_df = pd.read_csv(CENSUS_DATA)
 census_df.drop("state of previous residence", axis=1, inplace=True)
-st.write(census_df.head())
 
 census_df['Probability for the label'] = census_df['Probability for the label'].str.replace('-50000', '1')
 census_df['Probability for the label'] = census_df['Probability for the label'].str.replace('50000+.', '0')
@@ -307,31 +309,80 @@ for i in range(len(categories_data)):
 # enc_fit = enc.fit(to_encode_cat)
 # encoded_census = enc.transform(enc_fit).toarray()
 # st.write(encoded_census)
-st.write(census_df)
 
 selected_nums = ['age', 'wage per hour', 'capital gains', 'capital losses', 'dividends from stocks', 'num persons worked for employer', 'year', 'weeks worked in year', 'instance weight']
 to_join = census_df[selected_nums]
 
 #total = np.hstack((encoded_census, to_join))
+# from sklearn.preprocessing import StandardScaler
+# scaler = StandardScaler()
+# census_df = scaler.fit_transform(census_df)
 total = np.hstack((census_df, to_join))
-st.write(total)
 
 # st.write(enc.categories_)
 
-census_train, census_test, census_train_label, census_test_label = train_test_split(total, census_df['class of worker'], test_size=0.2, random_state=42)
+census_train, census_test, census_train_label, census_test_label = train_test_split(total, census_df['class of worker'], test_size=0.99, train_size = 0.01, random_state=42)
+# Adding more to train/test size wouldve taken too long 
+print(census_train.shape)
+st.write(census_train.shape)
 
+feature_names_census = categories_data + selected_nums
+st.write(feature_names_census)
 st.write("# Agglomerative Clustering")
 # Agglomerative Clustering
-clustering = AgglomerativeClustering().fit(census_train)
-clustered_data = np.column_stack([census_train, clustering.labels_])
-clabel = clustering.labels_
+clustering_2 = AgglomerativeClustering().fit(census_train)
+clustered_data = np.column_stack([census_train, clustering_2.labels_]) 
+clabel = clustering_2.labels_
 fig_agglomerative, ax = plt.subplots()
-feature1 = st.slider("Feature 1 (x-axis): ", 1, 17, 1, key="census_agg_1")
-feature2 = st.slider("Feature 2 (y-axis): ", 1, 17, 2, key="census_agg_2")
-plt.xlabel(feature_names[feature1])
-plt.ylabel(feature_names[feature2])
-ax = plt.scatter(train[:,feature1], train[:,feature2], c=clabel)# labels_train)
+feature1 = st.slider("Feature 1 (x-axis): ", 1, 30, 28, key="census_agg_1")
+feature2 = st.slider("Feature 2 (y-axis): ", 1, 30, 30, key="census_agg_2")
+plt.xlabel(feature_names_census[feature1])
+plt.ylabel(feature_names_census[feature2])
+ax = plt.scatter(census_train[:,feature1], census_train[:,feature2], c=clabel)# labels_train)
 st.pyplot(fig_agglomerative)
 
+st.write("# EM Clustering")
+clustering_em_census = GaussianMixture(n_components=2, init_params='kmeans').fit(census_train)
+# names = list(feature_names)+["membership"]
+clustered_data = np.column_stack([census_train, clustering_em_census.predict(census_train)])
+fig_em, ax = plt.subplots()
+# We start with index 1 because index 0 is the key/index of the samples
+# feature1 = st.slider("Feature 1: ", 1, 17, 1, key="em_1")
+# feature2 = st.slider("Feature 2: ", 1, 17, 2, key="em_2")
+ax = plt.scatter(census_train[:,feature1], census_train[:,feature2], c=clustering_em_census.predict(census_train))# labels_train)
+plt.xlabel(feature_names_census[feature1])
+plt.ylabel(feature_names_census[feature2])
+st.pyplot(fig_em)
+
+clabel = clustering_em_census.predict(census_train)
+point_index = 1
+point = census_test[point_index]
+st.write(point)
+point_pred_label = clustering_em_census.predict(point.reshape(1, -1))
+
+pred_same_index_list = [] # store the list of indices of the points that are in the same cluster as the test point (1 or 0 value)
+for i in range(len(labels_train)): 
+    if labels_train[i] == point_pred_label:
+        pred_same_index_list.append(i)
+
+point_clustered_data = census_train[pred_same_index_list]
+# census_train.astype(float)
+explainer_census = LimeTabularExplainer(census_train,
+                                 mode="classification",
+                                 feature_names=feature_names_census,
+                                 class_names=[0,1],
+                                 discretize_continuous=False,
+                                 verbose=False)
+
+for i in range(3): 
+    exp_lime = explainer.explain_instance_hclust(point,
+                                             nn.predict_proba,
+                                             num_features=5,
+                                             model_regressor= LinearRegression(),
+                                             regressor = 'linear', explainer = 'lime', labels=(0,1))
+
+    # print("pt",point.reshape((30,1)))
+    fig_lime, r_features = exp_lime.as_pyplot_to_figure(type='h', name = 1+.3, label='0')
+    st.pyplot(fig_lime)
 df = pd.read_csv(HEP_DATA)
 st.line_chart(df)
