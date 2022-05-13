@@ -324,7 +324,7 @@ total = np.hstack((census_df, to_join))
 census_train, census_test, census_train_label, census_test_label = train_test_split(total, census_df['class of worker'], test_size=0.99, train_size = 0.01, random_state=42)
 # Adding more to train/test size wouldve taken too long 
 print(census_train.shape)
-st.write(census_train.shape)
+st.write(census_train.shape, census_test.shape)
 
 feature_names_census = categories_data + selected_nums
 st.write(feature_names_census)
@@ -357,7 +357,6 @@ st.pyplot(fig_em)
 clabel = clustering_em_census.predict(census_train)
 point_index = 1
 point = census_test[point_index]
-st.write(point)
 point_pred_label = clustering_em_census.predict(point.reshape(1, -1))
 
 pred_same_index_list = [] # store the list of indices of the points that are in the same cluster as the test point (1 or 0 value)
@@ -375,7 +374,7 @@ explainer_census = LimeTabularExplainer(census_train,
                                  verbose=False)
 
 for i in range(3): 
-    exp_lime = explainer.explain_instance_hclust(point,
+    exp_lime = explainer_census.explain_instance_hclust(point,
                                              nn.predict_proba,
                                              num_features=5,
                                              model_regressor= LinearRegression(),
@@ -384,5 +383,13 @@ for i in range(3):
     # print("pt",point.reshape((30,1)))
     fig_lime, r_features = exp_lime.as_pyplot_to_figure(type='h', name = 1+.3, label='0')
     st.pyplot(fig_lime)
-df = pd.read_csv(HEP_DATA)
-st.line_chart(df)
+
+# for i in range(3): 
+#     exp_dlime = explainer_census.explain_instance_hclust(point,
+#                                                 nn.predict_proba,
+#                                                 num_features=5,
+#                                                 model_regressor=LinearRegression(),
+#                                                 clustered_data = point_clustered_data,
+#                                                 regressor = 'linear', explainer='dlime', labels=(0,1))
+#     fig_dlime1, r_features = exp_dlime.as_pyplot_to_figure(type='h', name = 1+.2, label='0')
+#     st.pyplot(fig_dlime1)
